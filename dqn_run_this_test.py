@@ -1,4 +1,3 @@
-#from connect4game import Connect4
 from connect4_selfplay import Connect4
 from DQN_modified_test import DeepQNetwork
 import cv2
