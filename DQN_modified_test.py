@@ -50,6 +50,7 @@ class DeepQNetwork:
         self.n_features = self.crop_size_x * self.crop_size_y
         self.mode = mode
         self.save_step = 500
+        #self.path = 'D:\zhaomi\code\project\deep_q_network'
 
 
 
@@ -269,25 +270,29 @@ class DeepQNetwork:
         frame = cv2.resize(frame, crop_size, interpolation=cv2.INTER_CUBIC)
         return frame
 
-    def plt_win_rate(self, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list):
-        plt.plot(np.arange(len(win_rate_list_p1)), win_rate_list_p1, label='player1_win_rate')
-        plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate')
+
+    def plt_data(self,image_path, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list):
+        plt.plot(np.arange(len(win_rate_list_p1)), win_rate_list_p1, label='player1_win_rate(random)')
+        plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate(AI)')
         plt.ylabel('Winning rate')
         plt.xlabel('game numbers')
         plt.legend(loc='upper right')
+        plt.savefig(image_path + 'win_rate.png')
         plt.show()
        # figure;
-        plt.plot(np.arange(len(avg_step_p1_list)), avg_step_p1_list, label='player1_aver_step')
-        plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step')
+        plt.plot(np.arange(len(avg_step_p1_list)), avg_step_p1_list, label='player1_aver_step(random)')
+        plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step(AI)')
         plt.ylabel('Average steps ')
         plt.xlabel('game numbers')
         plt.legend(loc='upper right')
+        plt.savefig(image_path + 'aver_step.png')
         plt.show()
-        plt.plot(np.arange(len(reward_p1_list)), reward_p1_list, label='player1_reward_total')
-        plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total')
+        plt.plot(np.arange(len(reward_p1_list)), reward_p1_list, label='player1_reward_total(random)')
+        plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total(AI)')
         plt.ylabel('Total reward ')
         plt.xlabel('game numbers')
         plt.legend(loc='upper right')
+        plt.savefig(image_path + 'reward_total.png')
         plt.show()
 
     # def pre_process(self, frame):

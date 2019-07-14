@@ -3,6 +3,7 @@ from DQN_modified_test import DeepQNetwork
 import cv2
 import numpy as np
 import os
+import csv
 
 
 def run_connect4():
@@ -23,9 +24,12 @@ def run_connect4():
     reward_p1_list = []
     reward_p2_list = []
 
-    image_path = 'D:\zhaomi\code\project\deep_q_network\images\\'
+    project_path = 'D:\zhaomi\code\project\deep_q_network'
+    csv_file = open(project_path + '\csv_data\\result_data.csv', 'a', newline='')
+    writer = csv.writer(csv_file)
+
     i = 0
-    for episode in range(50000):
+    for episode in range(30):
     # every game number
     #while True:
         game_number += 1
@@ -95,6 +99,8 @@ def run_connect4():
             i = i + 1
             if done_p1:
                 break
+
+
        # print("game_number: %d, reward_p2_total: %d, info_p2_total[n_w, n_d, n_l, n_il]: %s, reward_p1_total: %d, info_p1_total[n_w, n_d, n_l, n_il]: %s, step_p2: %d, step_p1:  %d .\n" % (game_number, reward_p2_total, str(info_p2_total), reward_p1_total, str(info_p1_total), step_p2, step_p1))
         win_rate_p1 = round(info_p1_total[0] / (sum(info_p1_total[:4])), 2)
         win_rate_p2 = round(info_p2_total[0] / (sum(info_p2_total[:4])), 2)
@@ -110,17 +116,23 @@ def run_connect4():
         reward_p2_list.append(reward_p2_total)
 
         print("\n", "*" * 80)
-        print("game_number: %d: \nreward_p1_total: %d, info_p1_total[n_w, n_d, n_l, n_il]: %s, step_p1: %d " % (game_number, reward_p1_total, str(info_p1_total), step_p1))
+        print("game_number: %d end: \nreward_p1_total: %d, info_p1_total[n_w, n_d, n_l, n_il]: %s, step_p1: %d " % (game_number, reward_p1_total, str(info_p1_total), step_p1))
         print("reward_p2_total: %d, info_p2_total[n_w, n_d, n_l, n_il]: %s, step_p2: %d." % (reward_p2_total, str(info_p2_total), step_p2))
         print("*" * 80, "\n")
-           # env.draw_info(game_number, reward_p2_total, step)
+
+        csv_data = [win_rate_p1, win_rate_p2, avg_step_p1, avg_step_p2, reward_p1_total, reward_p2_total]
+        if game_number % 3 == 0:
+            writer.writerow(csv_data)
+        if game_number % 3 == 0:
+            RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
+
 
     # end of game
     #print('win_rate_p1_list, win_rate_p2_list',win_rate_p1_list, win_rate_p2_list)
     #print('avg_step_p1_list, avg_step_p2_list', avg_step_p1_list, avg_step_p2_list)
     #print('reward_p1_list,reward_p2_list', reward_p1_list, reward_p2_list)
-    RL.plt_win_rate(win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
     print('game over')
+    csv_file.close()
 
 # def pre_process(frame, crop_size):
 #     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
