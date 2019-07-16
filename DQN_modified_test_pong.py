@@ -174,7 +174,7 @@ class DeepQNetwork:
             W_fc5 = tf.Variable(tf.truncated_normal([512, self.n_actions], stddev=0.02))
             b_fc5 = tf.Variable(tf.constant(0.01, shape=[self.n_actions]))
           # Computes rectified linear unit activation fucntion on  a 2-D convolution given 4-D input and filter tensors. and
-            conv1 = tf.nn.relu(tf.nn.conv2d(self.s, W_conv1, strides=[1, 4, 4, 1], padding="SAME") + b_conv1)
+            conv1 = tf.nn.relu(tf.nn.conv2d(self.s_, W_conv1, strides=[1, 4, 4, 1], padding="SAME") + b_conv1)
             pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
             conv2 = tf.nn.relu(tf.nn.conv2d(pool1, W_conv2, strides=[1, 2, 2, 1], padding="SAME") + b_conv2)
             conv3 = tf.nn.relu(tf.nn.conv2d(conv2, W_conv3, strides=[1, 1, 1, 1], padding="SAME") + b_conv3)
