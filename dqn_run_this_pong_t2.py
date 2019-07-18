@@ -26,7 +26,7 @@ def run_connect4():
     # print("frame shape::", frame.shape)
     observation = np.stack((frame, frame, frame, frame), axis=2)
 
-    for episode in range(10):
+    for episode in range(40000):
    # if(game_number <= 20000):
     # every game number
     #while True:
@@ -86,9 +86,9 @@ def run_connect4():
         reward_list.append(reward_total)
 
         csv_data = [win_rate, reward_total]
-        # if game_number % 100 == 0:
-        #     writer.writerow(csv_data)
-        if game_number % 3 == 0:
+        if game_number % 100 == 0:
+             writer.writerow(csv_data)
+        if game_number % 1000 == 0:
              RL.plt_data(project_path + "\images\\", win_rate_list, [], [], [], reward_list, [])
 
 #
