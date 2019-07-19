@@ -5,6 +5,11 @@ import numpy as np
 import os
 import csv
 
+def prepare_dirs(projectDir):
+    if not os.path.exists(projectDir+"\\csv_data"):
+        os.makedirs(projectDir+"\\csv_data")
+    if not os.path.exists(projectDir+"\\images"):
+        os.makedirs(projectDir+"\\images")
 
 def run_connect4():
     step_p1 = 0
@@ -24,12 +29,12 @@ def run_connect4():
     reward_p1_list = []
     reward_p2_list = []
 
-    project_path = 'D:\zhaomi\code\project\deep_q_network'
-    csv_file = open(project_path + '\csv_data\\result_data.csv', 'a', newline='')
+    project_path = 'E:\\Downloads\\AI\\reinforcement-learning'
+    prepare_dirs(project_path)
+    csv_file = open(project_path + '\\csv_data\\result_data.csv', 'a', newline='')
     writer = csv.writer(csv_file)
 
-    i = 0
-    for episode in range(30):
+    for i in range(30):
     # every game number
     #while True:
         game_number += 1
@@ -123,8 +128,8 @@ def run_connect4():
         csv_data = [win_rate_p1, win_rate_p2, avg_step_p1, avg_step_p2, reward_p1_total, reward_p2_total]
         if game_number % 3 == 0:
             writer.writerow(csv_data)
-        if game_number % 3 == 0:
-            RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
+        # if game_number % 3 == 0:
+        #     RL.plt_data(project_path + "\\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
 
 
     # end of game

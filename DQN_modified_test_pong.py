@@ -10,9 +10,10 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
+import os
 
 np.random.seed(1)
-tf.set_random_seed(1)
+tf.compat.v1.set_random_seed(1)
 
 
 # Deep Q Network off-policy
@@ -65,37 +66,37 @@ class DeepQNetwork:
         # consist of [target_net, evaluate_net]
         self._build_net()
 
-        t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
-        e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
+        t_params = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
+        e_params = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
 
-        with tf.variable_scope('hard_replacement'):
-            self.target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
+        with tf.compat.v1.variable_scope('hard_replacement'):
+            self.target_replace_op = [tf.compat.v1.assign(t, e) for t, e in zip(t_params, e_params)]
 
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
 
         if output_graph:
             # $ tensorboard --logdir=logs
-            writer = tf.summary.FileWriter("logs/", self.sess.graph)
+            writer = tf.compat.v1.summary.FileWriter("logs/", self.sess.graph)
             writer.close()
-        self.saver = tf.train.Saver(tf.global_variables())
+        self.saver = tf.compat.v1.train.Saver(tf.compat.v1.global_variables())
 
         checkpoint = tf.train.latest_checkpoint('./checkpoints')
         if checkpoint != None and self.mode == 'use mode':
             print("Restore checkpoint %s"%(checkpoint))
             self.saver.restore(self.sess, checkpoint)
         else:
-            self.sess.run(tf.global_variables_initializer())
+            self.sess.run(tf.compat.v1.global_variables_initializer())
             print("Initialized New Graph")
         self.cost_his = []
 
     def _build_net(self):
         # ------------------ all inputs ------------------------
-        #self.s = tf.placeholder(tf.float32, [None, self.n_features], name='s')  # input State
-        self.s = tf.placeholder(tf.float32, [None, self.crop_size_x, self.crop_size_y, self.channel_num], name='s')  # input State
-        #self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')  # input Next State
-        self.s_ = tf.placeholder(tf.float32, [None, self.crop_size_x, self.crop_size_y, self.channel_num], name='s_')  # input Next State
-        self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
-        self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
+        #self.s = tf.compat.v1.placeholder(tf.float32, [None, self.n_features], name='s')  # input State
+        self.s = tf.compat.v1.placeholder(tf.float32, [None, self.crop_size_x, self.crop_size_y, self.channel_num], name='s')  # input State
+        #self.s_ = tf.compat.v1.placeholder(tf.float32, [None, self.n_features], name='s_')  # input Next State
+        self.s_ = tf.compat.v1.placeholder(tf.float32, [None, self.crop_size_x, self.crop_size_y, self.channel_num], name='s_')  # input Next State
+        self.r = tf.compat.v1.placeholder(tf.float32, [None, ], name='r')  # input Reward
+        self.a = tf.compat.v1.placeholder(tf.int32, [None, ], name='a')  # input Action
 
         w_initializer, b_initializer = tf.random_normal_initializer(0., 0.3), tf.constant_initializer(0.1)
 
@@ -117,20 +118,20 @@ class DeepQNetwork:
         #     logits = tf.layers.dense(inputs=dense, units=7)
         #     self.q_eval = tf.nn.softmax(logits, name='q')
 
-        with tf.variable_scope('eval_net'):
-            W_conv1 = tf.Variable(tf.truncated_normal([6, 6, self.channel_num, 32], stddev=0.02))
+        with tf.compat.v1.variable_scope('eval_net'):
+            W_conv1 = tf.Variable(tf.random.truncated_normal([6, 6, self.channel_num, 32], stddev=0.02))
             b_conv1 = tf.Variable(tf.constant(0.01, shape=[32]))
-            W_conv2 = tf.Variable(tf.truncated_normal([4, 4, 32, 64], stddev=0.02))
+            W_conv2 = tf.Variable(tf.random.truncated_normal([4, 4, 32, 64], stddev=0.02))
             b_conv2 = tf.Variable(tf.constant(0.01, shape=[64]))
-            W_conv3 = tf.Variable(tf.truncated_normal([3, 3, 64, 64], stddev=0.02))
+            W_conv3 = tf.Variable(tf.random.truncated_normal([3, 3, 64, 64], stddev=0.02))
             b_conv3 = tf.Variable(tf.constant(0.01, shape=[64]))
-            W_fc4 = tf.Variable(tf.truncated_normal([1024, 512], stddev=0.02))
+            W_fc4 = tf.Variable(tf.random.truncated_normal([1024, 512], stddev=0.02))
             b_fc4 = tf.Variable(tf.constant(0.01, shape=[512]))
-            W_fc5 = tf.Variable(tf.truncated_normal([512, self.n_actions], stddev=0.02))
+            W_fc5 = tf.Variable(tf.random.truncated_normal([512, self.n_actions], stddev=0.02))
             b_fc5 = tf.Variable(tf.constant(0.01, shape=[self.n_actions]))
           # Computes rectified linear unit activation fucntion on  a 2-D convolution given 4-D input and filter tensors. and
             conv1 = tf.nn.relu(tf.nn.conv2d(self.s, W_conv1, strides=[1, 4, 4, 1], padding="SAME") + b_conv1)
-            pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+            pool1 = tf.nn.max_pool2d(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
             conv2 = tf.nn.relu(tf.nn.conv2d(pool1, W_conv2, strides=[1, 2, 2, 1], padding="SAME") + b_conv2)
             conv3 = tf.nn.relu(tf.nn.conv2d(conv2, W_conv3, strides=[1, 1, 1, 1], padding="SAME") + b_conv3)
             conv3_flat = tf.reshape(conv3, [-1, 1024])
@@ -162,20 +163,20 @@ class DeepQNetwork:
         #     #self.q_next = tf.layers.dense(inputs=pool2_t, units=self.n_actions, activation=tf.nn.relu, name='t')
 
 
-        with tf.variable_scope('target_net'):
-            W_conv1 = tf.Variable(tf.truncated_normal([6, 6, self.channel_num, 32], stddev=0.02))
+        with tf.compat.v1.variable_scope('target_net'):
+            W_conv1 = tf.Variable(tf.random.truncated_normal([6, 6, self.channel_num, 32], stddev=0.02))
             b_conv1 = tf.Variable(tf.constant(0.01, shape=[32]))
-            W_conv2 = tf.Variable(tf.truncated_normal([4, 4, 32, 64], stddev=0.02))
+            W_conv2 = tf.Variable(tf.random.truncated_normal([4, 4, 32, 64], stddev=0.02))
             b_conv2 = tf.Variable(tf.constant(0.01, shape=[64]))
-            W_conv3 = tf.Variable(tf.truncated_normal([3, 3, 64, 64], stddev=0.02))
+            W_conv3 = tf.Variable(tf.random.truncated_normal([3, 3, 64, 64], stddev=0.02))
             b_conv3 = tf.Variable(tf.constant(0.01, shape=[64]))
-            W_fc4 = tf.Variable(tf.truncated_normal([1024, 512], stddev=0.02))
+            W_fc4 = tf.Variable(tf.random.truncated_normal([1024, 512], stddev=0.02))
             b_fc4 = tf.Variable(tf.constant(0.01, shape=[512]))
-            W_fc5 = tf.Variable(tf.truncated_normal([512, self.n_actions], stddev=0.02))
+            W_fc5 = tf.Variable(tf.random.truncated_normal([512, self.n_actions], stddev=0.02))
             b_fc5 = tf.Variable(tf.constant(0.01, shape=[self.n_actions]))
           # Computes rectified linear unit activation fucntion on  a 2-D convolution given 4-D input and filter tensors. and
             conv1 = tf.nn.relu(tf.nn.conv2d(self.s_, W_conv1, strides=[1, 4, 4, 1], padding="SAME") + b_conv1)
-            pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+            pool1 = tf.nn.max_pool2d(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
             conv2 = tf.nn.relu(tf.nn.conv2d(pool1, W_conv2, strides=[1, 2, 2, 1], padding="SAME") + b_conv2)
             conv3 = tf.nn.relu(tf.nn.conv2d(conv2, W_conv3, strides=[1, 1, 1, 1], padding="SAME") + b_conv3)
             conv3_flat = tf.reshape(conv3, [-1, 1024])
@@ -186,16 +187,16 @@ class DeepQNetwork:
 
 
 
-        with tf.variable_scope('q_target'):
+        with tf.compat.v1.variable_scope('q_target'):
             q_target = self.r + self.gamma * tf.reduce_max(self.q_next, axis=1, name='Qmax_s_')    # shape=(None, )
             self.q_target = tf.stop_gradient(q_target)
-        with tf.variable_scope('q_eval'):
+        with tf.compat.v1.variable_scope('q_eval'):
             a_indices = tf.stack([tf.range(tf.shape(self.a)[0], dtype=tf.int32), self.a], axis=1)
             self.q_eval_wrt_a = tf.gather_nd(params=self.q_eval, indices=a_indices)    # shape=(None, )
-        with tf.variable_scope('loss'):
-            self.loss = tf.reduce_mean(tf.squared_difference(self.q_target, self.q_eval_wrt_a, name='TD_error'))
-        with tf.variable_scope('train'):
-            self._train_op = tf.train.RMSPropOptimizer(self.lr).minimize(self.loss)
+        with tf.compat.v1.variable_scope('loss'):
+            self.loss = tf.reduce_mean(tf.math.squared_difference(self.q_target, self.q_eval_wrt_a, name='TD_error'))
+        with tf.compat.v1.variable_scope('train'):
+            self._train_op = tf.compat.v1.train.RMSPropOptimizer(self.lr).minimize(self.loss)
 
     def store_transition(self, s, a, r, s_):
        # print("all type:", s.type, a.type, r.type, s_.type)
@@ -274,14 +275,19 @@ class DeepQNetwork:
 
 
     def plt_data(self,image_path, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list):
+        plt.figure(1)
         plt.plot(np.arange(len(win_rate_list_p1)), win_rate_list_p1, label='player1_win_rate(random)')
         plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate(AI)')
         plt.ylabel('Winning rate')
         plt.xlabel('game numbers')
         plt.legend(loc='upper right')
-        plt.savefig(image_path + 'win_rate.png')
+        fig_name1=image_path + 'win_rate.png'
+        #if os.path.exists(fig_name1):
+        #    os.rename(fig_name1,fig_name1 + "1")
+        plt.savefig(fig_name1)
         plt.show()
        # figure;
+        plt.figure(2)
         plt.plot(np.arange(len(avg_step_p1_list)), avg_step_p1_list, label='player1_aver_step(random)')
         plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step(AI)')
         plt.ylabel('Average steps ')
@@ -289,6 +295,7 @@ class DeepQNetwork:
         plt.legend(loc='upper right')
         plt.savefig(image_path + 'aver_step.png')
         plt.show()
+        plt.figure(3)
         plt.plot(np.arange(len(reward_p1_list)), reward_p1_list, label='player1_reward_total(random)')
         plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total(AI)')
         plt.ylabel('Total reward ')
