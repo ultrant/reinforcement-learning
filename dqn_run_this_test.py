@@ -6,7 +6,13 @@ import numpy as np
 import os
 import csv
 import datetime
+import time
 
+def prepare_dirs(projectDir):
+    if not os.path.exists(projectDir+"\\csv_data"):
+        os.makedirs(projectDir+"\\csv_data")
+    if not os.path.exists(projectDir+"\\images"):
+        os.makedirs(projectDir+"\\images")
 
 def run_connect4():
     step_p1 = 0
@@ -25,10 +31,17 @@ def run_connect4():
     avg_step_p2_list = []
     reward_p1_list = []
     reward_p2_list = []
+<<<<<<< HEAD
     loss_p2_list = []
     loss = 0
     project_path = 'D:\zhaomi\code\project\deep_q_network'
     csv_file = open(project_path + '\csv_data\\result_data_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv', 'a', newline='')
+=======
+
+    project_path = 'E:\\Downloads\\AI\\reinforcement-learning'
+    prepare_dirs(project_path)
+    csv_file = open(project_path + '\\csv_data\\result_data.csv', 'a', newline='')
+>>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
     writer = csv.writer(csv_file)
 
     i = 0
@@ -139,9 +152,14 @@ def run_connect4():
         if game_number % 100 == 0:
             writer.writerow(csv_data)
             csv_file.flush()
+<<<<<<< HEAD
         if game_number % 10000 == 0:
             RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list,[], loss_p2_list)
          #   RL.plot_cost()
+=======
+        if game_number % 1000 == 0:
+            RL.plt_data(project_path + "\\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
+>>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
 
 
     # end of game
@@ -150,6 +168,13 @@ def run_connect4():
     #print('reward_p1_list,reward_p2_list', reward_p1_list, reward_p2_list)
     print('game over')
     csv_file.close()
+
+
+def test_pygame():
+    for _ in range(10000):
+        env.draw_board()
+        env.mute_board()
+        time.sleep(0.1)
 
 # def pre_process(frame, crop_size):
 #     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -184,8 +209,9 @@ if __name__ == "__main__":
     if not os.path.exists('./images'):
         os.makedirs('./images')
     run_connect4()
+    # test_pygame()
 
     RL.plot_cost()
     end_time = datetime.datetime.now()
     print("end time:" + end_time.strftime('%Y-%m-%d %H:%M:%S'))
-    print("run time(seconds):" + (end_time - start_time).seconds)
+    print("run time(seconds):" + str((end_time - start_time).seconds))

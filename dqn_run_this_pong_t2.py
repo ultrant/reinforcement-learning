@@ -6,6 +6,12 @@ import numpy as np
 import os
 import csv
 
+def prepare_dirs(projectDir):
+    if not os.path.exists(projectDir+"\\csv_data"):
+        os.makedirs(projectDir+"\\csv_data")
+    if not os.path.exists(projectDir+"\\images"):
+        os.makedirs(projectDir+"\\images")
+
 
 def run_connect4():
     step = 0
@@ -15,8 +21,9 @@ def run_connect4():
     game_number = 0
     reward_list = []
     win_rate_list = []
-    project_path = 'D:\zhaomi\code\project\deep_q_network'
-    csv_file = open(project_path + '\csv_data\\result_data1.csv', 'a', newline='')
+    project_path = 'E:\\Downloads\\AI\\reinforcement-learning'
+    prepare_dirs(project_path)
+    csv_file = open(project_path + '\\csv_data\\result_data2.csv', 'a', newline='')
     writer = csv.writer(csv_file)
    # inp, out = RL.create_graph()
 
@@ -87,10 +94,18 @@ def run_connect4():
         reward_list.append(reward_total)
 
         csv_data = [win_rate, reward_total]
+<<<<<<< HEAD
         if game_number % 100 == 0:
              writer.writerow(csv_data)
         if game_number % 3 == 0:
              RL.plt_data(project_path + "\images\\", win_rate_list, [], [], [], reward_list, [])
+=======
+        if game_number % 10 == 0:
+            writer.writerow(csv_data)
+            csv_file.flush()
+        if game_number % 1000 == 0:
+            RL.plt_data(project_path + "\\images\\", win_rate_list, [], [], [], reward_list, [])
+>>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
 
 #
 #

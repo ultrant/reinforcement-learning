@@ -5,6 +5,12 @@ import numpy as np
 import os
 import csv
 
+def prepare_dirs(projectDir):
+    if not os.path.exists(projectDir+"\\csv_data"):
+        os.makedirs(projectDir+"\\csv_data")
+    if not os.path.exists(projectDir+"\\images"):
+        os.makedirs(projectDir+"\\images")
+
 
 def run_connect4():
     step = 0
@@ -14,9 +20,43 @@ def run_connect4():
     game_number = 0
     reward_list = []
     win_rate_list = []
+<<<<<<< HEAD
     project_path = 'D:\zhaomi\code\project\deep_q_network'
     csv_file = open(project_path + '\csv_data\\result_data1.csv', 'a', newline='')
     writer = csv.writer(csv_file)
+=======
+    project_path = 'E:\\Downloads\\AI\\reinforcement-learning'
+    prepare_dirs(project_path)
+    csv_file = open(project_path + '\\csv_data\\result_data1.csv', 'a', newline='')
+    writer = csv.writer(csv_file)
+
+
+    #-------------------------
+
+    #
+    # step_p1 = 0
+    # step_p2 = 0
+    # player = 2
+    # is_draw = 1
+    # crop_size = (60, 60)
+    # reward_p1_total = 0
+    # reward_p2_total = 0
+    # game_number = 0
+    # info_p1_total = [0, 0, 0, 0]
+    # info_p2_total = [0, 0, 0, 0]
+    # win_rate_p1_list = []
+    # win_rate_p2_list = []
+    # avg_step_p1_list = []
+    # avg_step_p2_list = []
+    # reward_p1_list = []
+    # reward_p2_list = []
+    #
+    #project_path = 'D:\zhaomi\code\project\deep_q_network'
+    # csv_file = open(project_path + '\csv_data\\result_data.csv', 'a', newline='')
+    # writer = csv.writer(csv_file)
+
+    # i = 0
+>>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
 
     #-----------------------
     frame = env.getPresentFrame()
