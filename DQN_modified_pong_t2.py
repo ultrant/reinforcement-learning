@@ -331,7 +331,7 @@ class DeepQNetwork:
         plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate(AI)')
         plt.ylabel('Winning rate')
         plt.xlabel('game numbers')
-        plt.legend(loc='upper right')
+        plt.legend(loc='upper left')
         fig_name1=image_path + 'win_rate.png'
         #if os.path.exists(fig_name1):
         #    os.rename(fig_name1,fig_name1 + "1")
@@ -343,7 +343,7 @@ class DeepQNetwork:
         plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step(AI)')
         plt.ylabel('Average steps ')
         plt.xlabel('game numbers')
-        plt.legend(loc='upper right')
+        plt.legend(loc='upper left')
         plt.savefig(image_path + 'aver_step.png')
         plt.show()
         plt.figure(3)
@@ -351,7 +351,7 @@ class DeepQNetwork:
         plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total(AI)')
         plt.ylabel('Total reward ')
         plt.xlabel('game numbers')
-        plt.legend(loc='upper right')
+        plt.legend(loc='upper left')
         plt.savefig(image_path + 'reward_total.png')
         plt.show()
 

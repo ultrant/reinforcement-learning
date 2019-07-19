@@ -268,6 +268,8 @@ class Connect4():
         # data = np.zeros((self.rowSize, self.colSize))
         # #data = data*255 #white background
         # data = np.flip(data, 0)
+        #for each frame, calls the event queue, like if the main window needs to be repainted
+        pygame.event.pump()
         
         for c in range(self.colSize):
             for r in range(self.rowSize):
@@ -289,8 +291,18 @@ class Connect4():
         self.image_data = pygame.surfarray.array3d(pygame.display.get_surface())
         # print("----------------------/n")
         # print(image_data)
-        pygame.display.update()
+        # pygame.display.update()
+        #updates the window
+        pygame.display.flip()
         return (self.image_data)
+
+    def mute_board(self):
+        for c in range(self.rowSize):
+            for r in range(self.colSize):
+                if (self.field[c][r] > 0):
+                    self.field[c][r] = 0
+                else:
+                    self.field[c][r] = 1
 
     # def draw_info(self,infoList):
     #     pygame.font.init()
