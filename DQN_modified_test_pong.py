@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import matplotlib.pyplot as plt
+import os
 
 np.random.seed(1)
 tf.set_random_seed(1)
@@ -239,10 +240,17 @@ class DeepQNetwork:
         else:
             sample_index = np.random.choice(self.memory_counter, size=self.batch_size)
         batch_memory = self.memory[sample_index, :]
-        #print("batch_memory:", batch_memory.shape)
+        print("batch_memory:", batch_memory.shape)
+        ss = batch_memory[:, :self.n_features].reshape(self.batch_size, 60, 60, self.channel_num)
+        aa = batch_memory[:, self.n_features]
+        rr = batch_memory[:, self.n_features + 1]
+        ss_ = batch_memory[:, -self.n_features:].reshape(self.batch_size, 60, 60, self.channel_num)
+        print("ss,aa,rr,ss_:", ss.shape, aa, rr, ss_.shape)
 
-        _, cost = self.sess.run(
-            [self._train_op, self.loss],
+       # _, cost = self.sess.run(
+       #     [self._train_op, self.loss],
+        self_q_target,self_q_next, self_q_eval_wrt_a,a_indice, self_q_eval, self_a, cost = self.sess.run(
+            [self.q_target,self.q_next, self.q_eval_wrt_a,tf.stack([tf.range(tf.shape(self.a)[0], dtype=tf.int32), self.a], axis=1), self.q_eval, self.a, self.loss],
             feed_dict={
                 self.s: batch_memory[:, :self.n_features].reshape(self.batch_size, 60, 60, self.channel_num),
                 #self.s: batch_memory[:, :self.n_features],
@@ -251,6 +259,10 @@ class DeepQNetwork:
                 #self.s_: batch_memory[:, -self.n_features:],
                 self.s_: batch_memory[:, -self.n_features:].reshape(self.batch_size, 60, 60, self.channel_num),
             })
+        print("self_q_target, self_q_eval_wrt_a :",self_q_target, self_q_eval_wrt_a )
+        print("self_q_next",self_q_next)
+        print("a_indice:",a_indice)
+        print("self_q_eval, self_a, cost :", self_q_eval, self_a, cost)
 
         if self.mode == 'train' and (step % self.save_step == 0):
         #if step % self.save_step == 0:
@@ -274,14 +286,19 @@ class DeepQNetwork:
 
 
     def plt_data(self,image_path, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list):
+        plt.figure(1)
         plt.plot(np.arange(len(win_rate_list_p1)), win_rate_list_p1, label='player1_win_rate(random)')
         plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate(AI)')
         plt.ylabel('Winning rate')
         plt.xlabel('game numbers')
         plt.legend(loc='upper right')
-        plt.savefig(image_path + 'win_rate.png')
+        fig_name1=image_path + 'win_rate.png'
+        #if os.path.exists(fig_name1):
+        #    os.rename(fig_name1,fig_name1 + "1")
+        plt.savefig(fig_name1)
         plt.show()
        # figure;
+        plt.figure(2)
         plt.plot(np.arange(len(avg_step_p1_list)), avg_step_p1_list, label='player1_aver_step(random)')
         plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step(AI)')
         plt.ylabel('Average steps ')
@@ -289,6 +306,7 @@ class DeepQNetwork:
         plt.legend(loc='upper right')
         plt.savefig(image_path + 'aver_step.png')
         plt.show()
+        plt.figure(3)
         plt.plot(np.arange(len(reward_p1_list)), reward_p1_list, label='player1_reward_total(random)')
         plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total(AI)')
         plt.ylabel('Total reward ')

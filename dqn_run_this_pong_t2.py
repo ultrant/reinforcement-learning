@@ -1,4 +1,5 @@
 from pong_dqn import PongGame
+#from connect4_selfplay import Connect4
 from DQN_modified_pong_t2 import DeepQNetwork
 import cv2
 import numpy as np
@@ -88,7 +89,7 @@ def run_connect4():
         csv_data = [win_rate, reward_total]
         if game_number % 100 == 0:
              writer.writerow(csv_data)
-        if game_number % 1000 == 0:
+        if game_number % 3 == 0:
              RL.plt_data(project_path + "\images\\", win_rate_list, [], [], [], reward_list, [])
 
 #
@@ -180,6 +181,7 @@ def run_connect4():
 if __name__ == "__main__":
     # maze game
     env = PongGame()
+#    env = Connect4()
     mode_type = 'train'
     #mode_type = 'use mode'
     # RL = DeepQNetwork(mode=mode_type, n_actions=3,

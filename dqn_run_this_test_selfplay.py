@@ -33,7 +33,8 @@ def run_connect4():
     ##### draw_info_list_p1 初始化
             draw_info_list_p1 = [game_number, reward_p1_total, step_p1]
             observation_p2, reward_p1, done_p1, info_p1 = env.makeMove_P1(player_p1, action_p1, draw_info_list_p1, is_draw)
-            reward_p1_total += reward_p1
+            print(type(reward_p1_total), type(reward_p1))
+            reward_p1_total += reward_p1[0]
             if done_p1:
                 break
             observation_p2 = pre_process(observation_p2, crop_size)
