@@ -31,17 +31,12 @@ def run_connect4():
     avg_step_p2_list = []
     reward_p1_list = []
     reward_p2_list = []
-<<<<<<< HEAD
+
     loss_p2_list = []
     loss = 0
     project_path = 'D:\zhaomi\code\project\deep_q_network'
     csv_file = open(project_path + '\csv_data\\result_data_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv', 'a', newline='')
-=======
 
-    project_path = 'E:\\Downloads\\AI\\reinforcement-learning'
-    prepare_dirs(project_path)
-    csv_file = open(project_path + '\\csv_data\\result_data.csv', 'a', newline='')
->>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
     writer = csv.writer(csv_file)
 
     i = 0
@@ -152,14 +147,10 @@ def run_connect4():
         if game_number % 100 == 0:
             writer.writerow(csv_data)
             csv_file.flush()
-<<<<<<< HEAD
+
         if game_number % 10000 == 0:
             RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list,[], loss_p2_list)
          #   RL.plot_cost()
-=======
-        if game_number % 1000 == 0:
-            RL.plt_data(project_path + "\\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
->>>>>>> 78d0181c79fd4a681edcd354f4d6df2965034021
 
 
     # end of game
