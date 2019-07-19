@@ -25,14 +25,15 @@ def run_connect4():
     avg_step_p2_list = []
     reward_p1_list = []
     reward_p2_list = []
-
+    loss_p2_list = []
+    loss = 0
     project_path = 'D:\zhaomi\code\project\deep_q_network'
-    csv_file = open(project_path + '\csv_data\\result_data.csv', 'a', newline='')
+    csv_file = open(project_path + '\csv_data\\result_data_' + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv', 'a', newline='')
     writer = csv.writer(csv_file)
 
     i = 0
     #for episode in range(40000):
-    for episode in range(50000):
+    for episode in range(100000):
     # every game number
     #while True:
         game_number += 1
@@ -86,7 +87,7 @@ def run_connect4():
 
 
             if (step_p2 > 200) and (step_p2 % 1 == 0):
-                RL.learn(step_p2)
+                loss = RL.learn(step_p2)
 
             observation_p1, reward_p1, done_p1, info_p1 = env.run_player1(env)
             step_p1 += 1
@@ -98,6 +99,7 @@ def run_connect4():
             observation_p1 = RL.pre_process(observation_p1, crop_size)
             observation_p1 = np.reshape(observation_p1, (60, 60, 1))
             observation_p1 = np.append(observation_p1, observation_p2[:, :, 0:3], axis=2)
+
             # RL.store_transition(observation_p2, action, reward, observation_p1)
 
           #   print("【action_p1: %d,  done_p1: %s】:\nreward_p1: %d, reward_p1_total: %d, info_p1[n_w, n_d, n_l, n_il]: %s" % (info_p1[4], str(done_p1), reward_p1[0], reward_p1_total , str(info_p1[:4])))
@@ -126,18 +128,20 @@ def run_connect4():
         avg_step_p2_list.append(avg_step_p2)
         reward_p1_list.append(reward_p1_total)
         reward_p2_list.append(reward_p2_total)
+        loss_p2_list.append(loss)
 
         print("\n", "*" * 80)
         print("game_number: %d end: \nreward_p1_total: %d, info_p1_total[n_w, n_d, n_l, n_il]: %s, step_p1: %d " % (game_number, reward_p1_total, str(info_p1_total), step_p1))
-        print("reward_p2_total: %d, info_p2_total[n_w, n_d, n_l, n_il]: %s, step_p2: %d." % (reward_p2_total, str(info_p2_total), step_p2))
+        print("reward_p2_total: %d, info_p2_total[n_w, n_d, n_l, n_il]: %s, step_p2: %d, loss: %s." % (reward_p2_total, str(info_p2_total), step_p2, str(loss)))
         print("*" * 80, "\n")
 
-        csv_data = [win_rate_p1, win_rate_p2, avg_step_p1, avg_step_p2, reward_p1_total, reward_p2_total, info_p1_total[0], info_p1_total[1], info_p1_total[2], info_p1_total[3], info_p2_total[0], info_p2_total[1], info_p2_total[2], info_p2_total[3]]
+        csv_data = [win_rate_p1, win_rate_p2, avg_step_p1, avg_step_p2, reward_p1_total, reward_p2_total, info_p1_total[0], info_p1_total[1], info_p1_total[2], info_p1_total[3], info_p2_total[0], info_p2_total[1], info_p2_total[2], info_p2_total[3], loss]
         if game_number % 100 == 0:
             writer.writerow(csv_data)
             csv_file.flush()
-        if game_number % 1000 == 0:
-            RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list)
+        if game_number % 10000 == 0:
+            RL.plt_data(project_path + "\images\\", win_rate_p1_list, win_rate_p2_list, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list,[], loss_p2_list)
+         #   RL.plot_cost()
 
 
     # end of game
@@ -168,16 +172,15 @@ if __name__ == "__main__":
     #                   output_graph=True
     #                   )
     RL = DeepQNetwork(n_actions=7,
+                      mode=mode_type,
                       output_graph=False
                       )
     if not os.path.exists('./checkpoints'):
         os.makedirs('./checkpoints')
     if not os.path.exists('./csv_data'):
         os.makedirs('./csv_data')
-    if os.path.exists('./csv_data/result_data.csv'):
-        os.system('mv ./csv_data/result_data.csv ./csv_data/result_data1.csv')
-
-
+ #   if os.path.exists('./csv_data/result_data.csv'):
+ #       os.system('mv ./csv_data/result_data.csv ./csv_data/result_data1.csv')
     if not os.path.exists('./images'):
         os.makedirs('./images')
     run_connect4()

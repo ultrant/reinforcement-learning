@@ -16,15 +16,13 @@ from numpy.random import choice
 import cv2
 import matplotlib.pyplot as plt
 
-#np.random.seed(1)
-#tf.set_random_seed(1)
-
 
 # Deep Q Network off-policy
 class DeepQNetwork:
     def __init__(
             self,
             n_actions,
+            mode,
             # n_features,
             # learning_rate=0.01,
             # reward_decay=0.9,
@@ -36,6 +34,7 @@ class DeepQNetwork:
             output_graph=False,
     ):
         self.ACTIONS = n_actions
+        self.mode = mode
         self.INITIAL_EPSILON = 1.0
         self.FINAL_EPSILON = 0.05
         # how many frames to anneal epsilon
@@ -45,6 +44,8 @@ class DeepQNetwork:
         self.REPLAY_MEMORY = 200000
         self.BATCH = 48
         self.GAMMA = 0.99
+        self.SAVE_STEP = 10
+       # self.cost_his = []
 
         self.D = deque()
         self.epsilon = self.INITIAL_EPSILON
@@ -56,34 +57,9 @@ class DeepQNetwork:
 
      #   -------------------------------------
 
-        # print("-------------\n")
-        # print(self.n_actions)
-        # self.n_features = n_features
-        # self.lr = learning_rate
-        # self.gamma = reward_decay
-        # self.epsilon_max = e_greedy
-        # self.replace_target_iter = replace_target_iter
-        # self.memory_size = memory_size
-        # self.batch_size = batch_size
-        # self.epsilon_increment = e_greedy_increment
-        # self.epsilon = 0 if e_greedy_increment is not None else self.epsilon_max
-        #
-        # # total learning step
-        # self.learn_step_counter = 0
-        #
-        # # initialize zero memory [s, a, r, s_]
-        # self.memory = np.zeros((self.memory_size, n_features * 2 + 2))
-        #
-        # # consist of [target_net, evaluate_net]
-        # self._build_net()
-        #
-        # t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
-        # e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
-        #
-        # with tf.variable_scope('hard_replacement'):
-        #     self.target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
 
         self.sess = tf.Session()
+        self.saver = tf.train.Saver(tf.global_variables())
 
         self.graph_pre()
 
@@ -119,40 +95,6 @@ class DeepQNetwork:
         fc5 = tf.matmul(fc4, W_fc5) + b_fc5
         return s, fc5
 
-        ## --------------------------------------------------------------
-        #
-        # # ------------------ all inputs ------------------------
-        # self.s = tf.placeholder(tf.float32, [None, self.n_features], name='s')  # input State
-        # self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')  # input Next State
-        # self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
-        # self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
-        #
-        # w_initializer, b_initializer = tf.random_normal_initializer(0., 0.3), tf.constant_initializer(0.1)
-        #
-        # # ------------------ build evaluate_net ------------------
-        # with tf.variable_scope('eval_net'):
-        #     e1 = tf.layers.dense(self.s, 20, tf.nn.relu, kernel_initializer=w_initializer,
-        #                          bias_initializer=b_initializer, name='e1')
-        #     self.q_eval = tf.layers.dense(e1, self.n_actions, kernel_initializer=w_initializer,
-        #                                   bias_initializer=b_initializer, name='q')
-        #
-        # # ------------------ build target_net ------------------
-        # with tf.variable_scope('target_net'):
-        #     t1 = tf.layers.dense(self.s_, 20, tf.nn.relu, kernel_initializer=w_initializer,
-        #                          bias_initializer=b_initializer, name='t1')
-        #     self.q_next = tf.layers.dense(t1, self.n_actions, kernel_initializer=w_initializer,
-        #                                   bias_initializer=b_initializer, name='t2')
-        #
-        # with tf.variable_scope('q_target'):
-        #     q_target = self.r + self.gamma * tf.reduce_max(self.q_next, axis=1, name='Qmax_s_')    # shape=(None, )
-        #     self.q_target = tf.stop_gradient(q_target)
-        # with tf.variable_scope('q_eval'):
-        #     a_indices = tf.stack([tf.range(tf.shape(self.a)[0], dtype=tf.int32), self.a], axis=1)
-        #     self.q_eval_wrt_a = tf.gather_nd(params=self.q_eval, indices=a_indices)    # shape=(None, )
-        # with tf.variable_scope('loss'):
-        #     self.loss = tf.reduce_mean(tf.squared_difference(self.q_target, self.q_eval_wrt_a, name='TD_error'))
-        # with tf.variable_scope('train'):
-        #     self._train_op = tf.train.RMSPropOptimizer(self.lr).minimize(self.loss)
 
     def graph_pre(self):
         # to calculate the argmax, we multiply the predicted output with a vector with one value 1 and rest as 0
@@ -167,22 +109,21 @@ class DeepQNetwork:
         # optimization fucntion to reduce our minimize our cost function
         self.train_step = tf.train.AdamOptimizer(1e-6).minimize(self.cost)
 
-        init = tf.global_variables_initializer()
-        self.sess.run(init)
+        checkpoint = tf.train.latest_checkpoint('./checkpoints')
+        if checkpoint != None and self.mode == 'use mode':
+            print('Restore Checkpoint %s' % (checkpoint))
+            saver.restore(sess, checkpoint)
+            print("Model restored.")
+        else:
+            init = tf.global_variables_initializer()
+            self.sess.run(init)
+            print("Initialized new Graph")
 
     def store_transition(self, inp_t, a, reward_t, inp_t1):
         self.D.append((inp_t, self.argmax_t, reward_t, inp_t1))
         if len(self.D) > self.REPLAY_MEMORY:
             self.D.popleft()
-        #
-        # ## --------------------------
-        # if not hasattr(self, 'memory_counter'):
-        #     self.memory_counter = 0
-        # transition = np.hstack((s, [a, r], s_))
-        # # replace the old memory with new memory
-        # index = self.memory_counter % self.memory_size
-        # self.memory[index, :] = transition
-        # self.memory_counter += 1
+
 
     def choose_action(self, observation):
         #inp, out = self.create_graph()
@@ -211,35 +152,10 @@ class DeepQNetwork:
             self.epsilon -= (self.INITIAL_EPSILON - self.FINAL_EPSILON) / self.EXPLORE
 
         return maxIndex
-        #
-        # ###  ---------------------------------------
-        # # to have batch dimension when feed into tf placeholder
-        # observation = observation[np.newaxis, :]
-        #
-        # if np.random.uniform() < self.epsilon:
-        #     # forward feed the observation and get q value for every actions
-        #     actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})
-        #     action = np.argmax(actions_value)
-        # else:
-        #     action = np.random.randint(0, self.n_actions)
-        # return action
+
 
     def learn(self,step):
 
-      #   # to calculate the argmax, we multiply the predicted output with a vector with one value 1 and rest as 0
-      #   argmax = tf.placeholder("float", [None, self.ACTIONS])
-      #   gt = tf.placeholder("float", [None])  # ground truth
-      # #  global_step = tf.Variable(0, name='global_step')
-      #
-      #   # action
-      #   action = tf.reduce_sum(tf.multiply(self.out, argmax), reduction_indices=1)
-      #   # cost function we will reduce through backpropagation
-      #   cost = tf.reduce_mean(tf.square(action - gt))
-      #   # optimization fucntion to reduce our minimize our cost function
-      #   train_step = tf.train.AdamOptimizer(1e-6).minimize(cost)
-      #
-      #   init = tf.global_variables_initializer()
-      #   self.sess.run(init)
 
         minibatch = random.sample(self.D, self.BATCH)
        # print("minibatch shape:", len(minibatch), len(minibatch[0]), len(minibatch[1]), len(minibatch[2]),len(minibatch[3]))
@@ -267,51 +183,11 @@ class DeepQNetwork:
                                                                             self.argmax: argmax_batch,
                                                                             self.inp: inp_batch
                                                                         })
-     #   print("tf bb_out, bb_argmax:", bb_out, bb_argmax)
-      #  print("tf bb_action, bb_cost, bb_train_step:", bb_action, bb_cost, bb_train_step)
-
-       #### -------------------------------------
-       #
-       #  # check to replace target parameters
-       #  if self.learn_step_counter % self.replace_target_iter == 0:
-       #      self.sess.run(self.target_replace_op)
-       #      print('\ntarget_params_replaced\n')
-       #
-       #  # sample batch memory from all memory
-       #  if self.memory_counter > self.memory_size:
-       #      sample_index = np.random.choice(self.memory_size, size=self.batch_size)
-       #  else:
-       #      sample_index = np.random.choice(self.memory_counter, size=self.batch_size)
-       #  batch_memory = self.memory[sample_index, :]
-       #  ss = batch_memory[:, :self.n_features]
-       #  aa = batch_memory[:, self.n_features]
-       #  rr = batch_memory[:, self.n_features + 1]
-       #  ss_ = batch_memory[:, -self.n_features:]
-       #  print("ss,aa,rr,ss_:", ss.shape, aa, rr, ss_.shape)
-       #
-       # # _, cost = self.sess.run(
-       # #     [self._train_op, self.loss],
-       # #     feed_dict={
-       #  self_q_target, self_q_next, self_q_eval_wrt_a, a_indice, self_q_eval, self_a, cost = self.sess.run(
-       #      [self.q_target, self.q_next, self.q_eval_wrt_a,
-       #       tf.stack([tf.range(tf.shape(self.a)[0], dtype=tf.int32), self.a], axis=1), self.q_eval, self.a, self.loss],
-       #      feed_dict={
-       #          self.s: batch_memory[:, :self.n_features],
-       #          self.a: batch_memory[:, self.n_features],
-       #          self.r: batch_memory[:, self.n_features + 1],
-       #          self.s_: batch_memory[:, -self.n_features:],
-       #      })
-       #
-       #  print("self_q_target, self_q_eval_wrt_a :", self_q_target, self_q_eval_wrt_a)
-       #  print("self_q_next", self_q_next)
-       #  print("a_indice:", a_indice)
-       #  print("self_q_eval, self_a, cost :", self_q_eval, self_a, cost)
-       #
-       #  self.cost_his.append(cost)
-       #
-       #  # increasing epsilon
-       #  self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
-       #  self.learn_step_counter += 1
+        if step % self.SAVE_STEP == 0:
+            self.saver.save(self.sess, './checkpoints/model.ckpt', global_step=step)
+        #if step % 100 == 0:
+        #    self.cost_his.append(bb_cost)
+        return bb_cost
 
     def plot_cost(self):
         import matplotlib.pyplot as plt
@@ -325,12 +201,12 @@ class DeepQNetwork:
         frame = cv2.resize(frame, crop_size, interpolation=cv2.INTER_CUBIC)
         return frame
 
-    def plt_data(self,image_path, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list):
+    def plt_data(self,image_path, win_rate_list_p1, win_rate_list_p2, avg_step_p1_list, avg_step_p2_list, reward_p1_list, reward_p2_list, loss_p1_list, loss_p2_list):
         plt.figure(1)
         plt.plot(np.arange(len(win_rate_list_p1)), win_rate_list_p1, label='player1_win_rate(random)')
         plt.plot(np.arange(len(win_rate_list_p2)), win_rate_list_p2, label='player2_win_rate(AI)')
         plt.ylabel('Winning rate')
-        plt.xlabel('game numbers')
+        plt.xlabel('game number')
         plt.legend(loc='upper left')
         fig_name1=image_path + 'win_rate.png'
         #if os.path.exists(fig_name1):
@@ -342,7 +218,7 @@ class DeepQNetwork:
         plt.plot(np.arange(len(avg_step_p1_list)), avg_step_p1_list, label='player1_aver_step(random)')
         plt.plot(np.arange(len(avg_step_p2_list)), avg_step_p2_list, label='player2_aver_step(AI)')
         plt.ylabel('Average steps ')
-        plt.xlabel('game numbers')
+        plt.xlabel('game number')
         plt.legend(loc='upper left')
         plt.savefig(image_path + 'aver_step.png')
         plt.show()
@@ -350,9 +226,17 @@ class DeepQNetwork:
         plt.plot(np.arange(len(reward_p1_list)), reward_p1_list, label='player1_reward_total(random)')
         plt.plot(np.arange(len(reward_p2_list)), reward_p2_list, label='player2_reward_total(AI)')
         plt.ylabel('Total reward ')
-        plt.xlabel('game numbers')
+        plt.xlabel('game number')
         plt.legend(loc='upper left')
         plt.savefig(image_path + 'reward_total.png')
+        plt.show()
+        plt.figure(4)
+        plt.plot(np.arange(len(loss_p1_list)), loss_p1_list, label='player1_loss(random)')
+        plt.plot(np.arange(len(loss_p2_list)), loss_p2_list, label='player2_loss(AI)')
+        plt.ylabel('Loss ')
+        plt.xlabel('game number')
+        plt.legend(loc='upper left')
+        plt.savefig(image_path + 'loss.png')
         plt.show()
 
 if __name__ == '__main__':
