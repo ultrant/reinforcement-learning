@@ -15,6 +15,7 @@ from collections import deque  # queue data structure. fast appends. and pops. r
 from numpy.random import choice
 import cv2
 import matplotlib.pyplot as plt
+from tensorflow.python.tools import inspect_checkpoint as chkp
 
 
 # Deep Q Network off-policy
@@ -44,7 +45,7 @@ class DeepQNetwork:
         self.REPLAY_MEMORY = 200000
         self.BATCH = 48
         self.GAMMA = 0.99
-        self.SAVE_STEP = 10
+        self.SAVE_STEP = 5000
        # self.cost_his = []
 
         self.D = deque()
@@ -52,14 +53,6 @@ class DeepQNetwork:
         self.argmax_t = np.zeros([self.ACTIONS])
 
         self.inp, self.out = self.create_graph()
-        print("inp, out shape", self.inp.shape, self.out.shape)
-        print("--" * 30)
-
-     #   -------------------------------------
-
-
-        self.sess = tf.Session()
-        self.saver = tf.train.Saver(tf.global_variables())
 
         self.graph_pre()
 
@@ -67,7 +60,7 @@ class DeepQNetwork:
             # $ tensorboard --logdir=logs
             tf.summary.FileWriter("logs/", self.sess.graph)
 
-        self.sess.run(tf.global_variables_initializer())
+       # self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
 
     def create_graph(self):
@@ -109,14 +102,22 @@ class DeepQNetwork:
         # optimization fucntion to reduce our minimize our cost function
         self.train_step = tf.train.AdamOptimizer(1e-6).minimize(self.cost)
 
+        self.sess = tf.Session()
+        self.saver = tf.train.Saver(tf.global_variables())
+
         checkpoint = tf.train.latest_checkpoint('./checkpoints')
         if checkpoint != None and self.mode == 'use mode':
             print('Restore Checkpoint %s' % (checkpoint))
-            saver.restore(sess, checkpoint)
+            self.saver.restore(self.sess, checkpoint)
+           # self.saver.restore(self.sess, './checkpoints/model.ckpt-713000')
+          #  chkp.print_tensors_in_checkpoint_file(checkpoint, tensor_name='Variable_9', all_tensors=False)
             print("Model restored.")
         else:
+           # b_fc5 = tf.Variable(tf.constant(0.01, shape=[self.ACTIONS]))
             init = tf.global_variables_initializer()
             self.sess.run(init)
+            #print(self.sess.run(b_fc5))
+           # print(self.sess.run(self.out))
             print("Initialized new Graph")
 
     def store_transition(self, inp_t, a, reward_t, inp_t1):

@@ -8,11 +8,11 @@ import csv
 import datetime
 import time
 
-def prepare_dirs(projectDir):
-    if not os.path.exists(projectDir+"\\csv_data"):
-        os.makedirs(projectDir+"\\csv_data")
-    if not os.path.exists(projectDir+"\\images"):
-        os.makedirs(projectDir+"\\images")
+# def prepare_dirs(projectDir):
+#     if not os.path.exists(projectDir+"\\csv_data"):
+#         os.makedirs(projectDir+"\\csv_data")
+#     if not os.path.exists(projectDir+"\\images"):
+#         os.makedirs(projectDir+"\\images")
 
 def run_connect4():
     step_p1 = 0
@@ -41,7 +41,7 @@ def run_connect4():
 
     i = 0
     #for episode in range(40000):
-    for episode in range(100000):
+    for episode in range(150000):
     # every game number
     #while True:
         game_number += 1
@@ -144,7 +144,7 @@ def run_connect4():
         print("*" * 80, "\n")
 
         csv_data = [win_rate_p1, win_rate_p2, avg_step_p1, avg_step_p2, reward_p1_total, reward_p2_total, info_p1_total[0], info_p1_total[1], info_p1_total[2], info_p1_total[3], info_p2_total[0], info_p2_total[1], info_p2_total[2], info_p2_total[3], loss]
-        if game_number % 100 == 0:
+        if game_number % 1000 == 0:
             writer.writerow(csv_data)
             csv_file.flush()
 
@@ -161,16 +161,13 @@ def run_connect4():
     csv_file.close()
 
 
-def test_pygame():
-    for _ in range(10000):
-        env.draw_board()
-        env.mute_board()
-        time.sleep(0.1)
+# def test_pygame():
+#     for _ in range(10000):
+#         env.draw_board()
+#         env.mute_board()
+#         time.sleep(0.1)
 
-# def pre_process(frame, crop_size):
-#     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-#     frame = cv2.resize(frame, crop_size, interpolation=cv2.INTER_CUBIC)
-#     return frame
+
 
 if __name__ == "__main__":
     # maze game
@@ -178,15 +175,7 @@ if __name__ == "__main__":
     print("start time:" + start_time.strftime('%Y-%m-%d %H:%M:%S'))
     env = Connect4()
     mode_type = 'train'
-    #mode_type = 'use mode'
-    # RL = DeepQNetwork(mode=mode_type, n_actions=7, n_features=60*60*1,
-    #                   learning_rate=0.01,
-    #                   reward_decay=0.9,
-    #                   e_greedy=0.9,
-    #                   replace_target_iter=200,
-    #                   memory_size=2000,
-    #                   output_graph=True
-    #                   )
+   # mode_type = 'use mode'
     RL = DeepQNetwork(n_actions=7,
                       mode=mode_type,
                       output_graph=False
@@ -195,8 +184,6 @@ if __name__ == "__main__":
         os.makedirs('./checkpoints')
     if not os.path.exists('./csv_data'):
         os.makedirs('./csv_data')
- #   if os.path.exists('./csv_data/result_data.csv'):
- #       os.system('mv ./csv_data/result_data.csv ./csv_data/result_data1.csv')
     if not os.path.exists('./images'):
         os.makedirs('./images')
     run_connect4()
